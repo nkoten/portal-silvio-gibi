@@ -4,106 +4,97 @@ import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { getUsuarioByEmail, createUsuario } from '@/lib/db';
 
-// Configuração principal do NextAuth
 export const authOptions = {
-  // Provedores de login (podemos adicionar Google, Facebook depois)
   providers: [
-    // 1. Provedor do Administrador (Silvio)
     CredentialsProvider({
-      id: 'admin-login',
-      name: 'Acesso Restrito',
+      // Usamos o ID padrão 'credentials' para coincidir com o componente LoginForm
+      id: 'credentials',
+      name: 'Acesso Portal',
       credentials: {
-        username: { label: 'Usuário', type: 'text', placeholder: 'admin' },
+        username: { label: 'Usuário', type: 'text' },
         password: { label: 'Senha', type: 'password' },
-      },
-      async authorize(credentials, req) {
-        // Lógica simples de autorização para o dono do projeto (Silvio)
-        // Mais tarde, podemos conectar isso ao Google Sheets para verificar os usuários registrados
-        if (
-          credentials.username === 'silvio' &&
-          credentials.password === 'gibi2024' // Mude para uma senha segura
-        ) {
-          return { id: 'admin-1', name: 'Silvio Gibi', role: 'admin' };
-        }
-
-        // Retorna null se falhar
-        return null;
-      },
-    }),
-
-    // 2. Provedor de Visitantes (Para o Chat)
-    CredentialsProvider({
-      id: 'visitor-login',
-      name: 'Acesso ao Chat',
-      credentials: {
+        // Campos extras para quando for login de visitante
         nome: { label: 'Nome', type: 'text' },
         email: { label: 'Email', type: 'text' },
+        isVisitor: { type: 'text' }, // Flag para diferenciar os tipos de login
       },
       async authorize(credentials) {
-        if (!credentials.nome || !credentials.email) return null;
-
         try {
-          // Verifica se o visitante já existe no Google Sheets
-          let usuario = await getUsuarioByEmail(credentials.email);
-
-          // Se não existir, criamos o registo na hora!
-          if (!usuario) {
-            const novoUser = await createUsuario({
-              nome: credentials.nome,
-              email: credentials.email,
-            });
-            usuario = {
-              id: novoUser.id.toString(),
-              name: novoUser.nome,
-              role: novoUser.role,
+          // --- LÓGICA DO ADMIN (Silvio) ---
+          if (
+            credentials.username === 'silvio' &&
+            credentials.password === 'gibi2024'
+          ) {
+            console.log('Login: Admin detectado');
+            return {
+              id: 'admin-1',
+              name: 'Silvio Gibi',
+              email: 'silvio@exemplo.com',
+              role: 'admin',
             };
-          } else {
-            usuario = {
+          }
+
+          // --- LÓGICA DO VISITANTE ---
+          if (credentials.isVisitor === 'true') {
+            console.log('Login: Visitante tentando acesso');
+            let usuario = await getUsuarioByEmail(credentials.email);
+
+            if (!usuario) {
+              console.log('Login: Criando novo visitante no Sheets');
+              const novoUser = await createUsuario({
+                nome: credentials.nome,
+                email: credentials.email,
+              });
+              return {
+                id: novoUser.id.toString(),
+                name: novoUser.nome,
+                email: credentials.email,
+                role: 'visitante',
+              };
+            }
+
+            return {
               id: usuario.id.toString(),
               name: usuario.nome,
+              email: usuario.email,
               role: usuario.role,
             };
           }
 
-          return usuario;
+          // Se chegou aqui e não caiu em nenhum caso, as credenciais estão erradas
+          return null;
         } catch (error) {
-          console.error('Erro no login do visitante:', error);
+          console.error('Erro no processo de Authorize:', error);
           return null;
         }
       },
     }),
   ],
-
-  // Páginas customizadas (podemos criar a nossa própria página de login estilizada depois)
   pages: {
     signIn: '/login',
+    error: '/login', // Redireciona erros para a mesma página
   },
-
-  // Estratégia de sessão usando JWT (JSON Web Token)
   session: {
     strategy: 'jwt',
   },
-
-  // Callbacks para passar dados do usuário para o frontend
   callbacks: {
     async jwt({ token, user }) {
-      // Se o usuário logou, injetamos a "role" (cargo) no token
       if (user) {
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-      // Repassamos a role do token para a sessão ativa
       if (token?.role) {
         session.user.role = token.role;
       }
       return session;
     },
   },
+  // Ativa logs detalhados no terminal do VS Code para ajudar a gente
+  debug: process.env.NODE_ENV === 'development',
 };
 
-// Criamos o handler que o Next.js usará para responder as requisições GET e POST
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

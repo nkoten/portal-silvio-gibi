@@ -59,15 +59,31 @@ export default function Navigation() {
 
         {/* Botão de Mensagens: Só aparece para quem tem sessão ativa */}
         {session ? (
-          <Link
-            href="/mensagens"
-            className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-600 to-cyan-600 border border-transparent rounded-xl shadow-sm hover:shadow-md hover:from-blue-700 hover:to-cyan-700 transition-all text-white group md:col-span-2 lg:col-span-1"
-          >
-            <div className="p-2 bg-white/20 rounded-lg">
-              <MessageSquare size={20} />
-            </div>
-            <span className="font-bold text-sm">Mensagens</span>
-          </Link>
+          <>
+            {/* mensagens */}
+            <Link
+              href="/mensagens"
+              className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-600 to-cyan-600 border border-transparent rounded-xl shadow-sm hover:shadow-md hover:from-blue-700 hover:to-cyan-700 transition-all text-white group md:col-span-2 lg:col-span-1"
+            >
+              <div className="p-2 bg-white/20 rounded-lg">
+                <MessageSquare size={20} />
+              </div>
+              <span className="font-bold text-sm">Mensagens</span>
+            </Link>
+
+            {/* perfil */}
+            <Link
+              href="/perfil"
+              className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-cyan-600 transition-all group"
+            >
+              <div className="p-2 bg-blue-50 dark:bg-zinc-800 rounded-lg text-blue-600 dark:text-cyan-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <User size={20} />
+              </div>
+              <span className="font-bold text-sm text-gray-700 dark:text-gray-200">
+                Meu Perfil
+              </span>
+            </Link>
+          </>
         ) : (
           /* Botão de Entrar no Chat: Só aparece para visitantes */
           <Link

@@ -13,9 +13,9 @@ export default function ThemeProvider({ children, ...props }) {
   const [mounted, setMounted] = useState(false);
 
   // Evita erros de hidratação garantindo que o tema só carrega no cliente
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // useEffect(() => {
+  //   setMounted(true);
+  // }, []);
 
   if (!mounted) {
     return <>{children}</>;

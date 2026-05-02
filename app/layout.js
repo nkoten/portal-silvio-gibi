@@ -26,7 +26,12 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" suppressHydrationWarning>
       <body className="bg-gray-50 dark:bg-zinc-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
         <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
           </ThemeProvider>
         </AuthProvider>

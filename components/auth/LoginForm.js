@@ -18,20 +18,28 @@ export default function LoginForm() {
     setCarregando(true);
     setErro('');
 
-    // Chamamos a função signIn do NextAuth passando o provedor "credentials"
-    const result = await signIn('credentials', {
-      username: usuario,
-      password: senha,
-      redirect: false, // Não redireciona automaticamente para podermos tratar o erro
-    });
+    try {
+      const result = await signIn('credentials', {
+        username: usuario,
+        password: senha,
+        isVisitor: 'false', // Indica que é o login do Silvio
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setErro('Usuário ou senha incorretos.');
+      console.log('Resultado do SignIn:', result);
+
+      if (result?.error) {
+        // Se houver erro, o sistema finalmente vai avisar o usuário
+        setErro('Usuário ou senha incorretos.');
+        setCarregando(false);
+      } else {
+        // Redirecionamento limpo
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error) {
+      setErro('Ocorreu um erro inesperado.');
       setCarregando(false);
-    } else {
-      // Se deu certo, enviamos o Silvio para a página inicial
-      router.push('/');
-      router.refresh(); // Atualiza os dados da tela
     }
   };
 
