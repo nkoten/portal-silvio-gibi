@@ -3,7 +3,11 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { createComentario, getComentariosPorPost } from '@/lib/db';
+import {
+  createComentario,
+  getComentariosPorPost,
+  getUsuarioByEmail,
+} from '@/lib/db';
 
 // Rota GET: Busca os comentários de um Post específico
 export async function GET(request) {
@@ -32,7 +36,6 @@ export async function GET(request) {
 
 // Rota POST: Recebe um novo comentário e grava
 export async function POST(request) {
-  // Segurança: Apenas quem está logado (Silvio ou Visitante) pode comentar
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -45,7 +48,6 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    // Validação básica para garantir que não mandam comentários vazios
     if (!body.postId || !body.texto || body.texto.trim() === '') {
       return NextResponse.json(
         { error: 'O texto do comentário é obrigatório.' },
@@ -53,11 +55,15 @@ export async function POST(request) {
       );
     }
 
-    // Grava no Sheets passando o nome de quem está logado na sessão
+    // Busca o avatar do utilizador logado no banco de dados para anexar ao comentário
+    const usuarioLogado = await getUsuarioByEmail(session.user.email);
+    const avatarDoAutor = usuarioLogado ? usuarioLogado.avatarUrl : '';
+
     const novoComentario = await createComentario({
       postId: body.postId,
       autorNome: session.user.name,
       texto: body.texto,
+      avatarUrl: avatarDoAutor, // Passa o avatar para gravar
     });
 
     return NextResponse.json(novoComentario, { status: 201 });

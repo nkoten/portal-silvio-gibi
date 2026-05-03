@@ -16,6 +16,7 @@ import {
   Globe,
   MessageSquare,
   ShieldCheck,
+  User,
 } from 'lucide-react';
 import Link from 'next/link'; // Importamos o Link do Next.js para navegação rápida
 

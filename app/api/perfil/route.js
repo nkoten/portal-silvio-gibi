@@ -34,28 +34,28 @@ export async function GET() {
 export async function PUT(request) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  if (!session || !session.user.email) {
+    return NextResponse.json({ error: 'Sessão inválida.' }, { status: 401 });
   }
 
   try {
     const dados = await request.json();
+    const emailAntigoDaSessao = session.user.email;
 
-    // Atualiza na planilha usando o email seguro da sessão
-    await updateUsuario(session.user.email, {
+    await updateUsuario(emailAntigoDaSessao, {
       nome: dados.nome,
+      email: dados.email, // Salva o email novo (mesmo que seja igual)
       bio: dados.bio,
       avatarUrl: dados.avatarUrl,
+      capaUrl: dados.capaUrl,
+      telefone: dados.telefone,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Perfil atualizado com sucesso!',
-    });
+    return NextResponse.json({ success: true, message: 'Perfil atualizado!' });
   } catch (error) {
-    console.error('Erro ao atualizar perfil:', error);
+    console.error('ERRO COMPLETO:', error);
     return NextResponse.json(
-      { error: 'Erro ao guardar as alterações.' },
+      { error: error.message || 'Erro interno.' },
       { status: 500 },
     );
   }
